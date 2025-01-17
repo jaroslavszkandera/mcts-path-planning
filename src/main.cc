@@ -1,10 +1,10 @@
 #include "grid.h"
 #include "mcts.h"
 
+#include <ctime>
+
 #include <QApplication>
 #include <QTimer>
-#include <cstdlib>
-#include <ctime>
 
 int main(int argc, char *argv[]) {
   QApplication app(argc, argv);

@@ -1,5 +1,8 @@
 #include "mcts.h"
 
+#include <algorithm>
+#include <iostream>
+
 void MCTS::Search(int iters) {
   for (int i = 0; i < iters; ++i) {
     MCTSNode *selected = Select(root_.get());
@@ -97,7 +100,8 @@ State MCTS::RandomNextState(const State &state) {
   if (next_states.empty()) {
     return state;
   }
-  std::uniform_int_distribution<int> dist(0, next_states.size() - 1);
+  std::uniform_int_distribution<int> dist(
+      0, static_cast<int>(next_states.size()) - 1);
   return next_states[dist(rng_)];
 }
 

@@ -1,5 +1,6 @@
 #include "grid.h"
 
+#include <iostream>
 #include <queue>
 
 Grid::Grid(QGraphicsScene *scene)

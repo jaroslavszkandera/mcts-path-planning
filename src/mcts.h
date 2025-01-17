@@ -1,10 +1,8 @@
 #ifndef MCTS_SRC_MCTS_H_
 #define MCTS_SRC_MCTS_H_
 
-#include <algorithm>
 #include <array>
 #include <cstdlib>
-#include <iostream>
 #include <memory>
 #include <random>
 #include <vector>
