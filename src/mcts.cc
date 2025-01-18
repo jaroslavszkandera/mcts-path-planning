@@ -69,8 +69,8 @@ double MCTS::Simulate(State state) {
                                       std::pow(state.loc_y - kGoalY, 2));
 
   double reward = progress_reward;
-  double heavy_penalty = -100;
-  int num_steps = 20;
+  double obstacle_penalty = -10;
+  int num_steps = 15;
   for (int step = 0; step < num_steps; ++step) {
     if (IsCollision(state)) {
       return -1000.0;
@@ -86,8 +86,8 @@ double MCTS::Simulate(State state) {
         if (state.grid->at(y).at(x)) {
           double dist_to_obstacle = std::sqrt(std::pow(state.loc_x - x, 2) +
                                               std::pow(state.loc_y - y, 2));
-          if (dist_to_obstacle <= 0.7) {
-            avoidance_reward += heavy_penalty;
+          if (dist_to_obstacle <= 1.0) {
+            avoidance_reward += obstacle_penalty;
           }
           // Penalty for object proximity
           if (dist_to_obstacle < 10.0) {
