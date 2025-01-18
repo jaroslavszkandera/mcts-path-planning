@@ -29,11 +29,13 @@ int main(int argc, char *argv[]) {
   }
 
   QGraphicsScene scene;
-  QGraphicsView view(&scene);
+  CustomGraphicsView view(&scene);
   view.setFixedSize(kWidth * kCellSize + 2, kHeight * kCellSize + 2);
   view.setSceneRect(0, 0, kWidth * kCellSize, kHeight * kCellSize);
 
   Grid grid(&scene, search_time_ms);
+  QObject::connect(&view, &CustomGraphicsView::ResetRequested, &grid,
+                   &Grid::ResetGrid);
 
   QTimer timer;
   constexpr int kRefreshDelayMs = 10;

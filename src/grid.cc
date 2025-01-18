@@ -13,7 +13,43 @@ Grid::Grid(QGraphicsScene *scene, int search_time_ms)
   RenderGrid();
 }
 
+void Grid::ShowMessage(const QString &message, const QColor &color) {
+  if (mesg_item_) {
+    scene_->removeItem(mesg_item_);
+    delete mesg_item_;
+  }
+
+  mesg_item_ = new QGraphicsTextItem(message);
+  QFont font("Arial", 24, QFont::Bold);
+  mesg_item_->setFont(font);
+  mesg_item_->setDefaultTextColor(color);
+  mesg_item_->setPos(
+      (kWidth * kCellSize - mesg_item_->boundingRect().width()) / 2,
+      (kHeight * kCellSize - mesg_item_->boundingRect().height()) / 2);
+  scene_->addItem(mesg_item_);
+}
+
+void Grid::ResetGrid() {
+  if (mesg_item_) {
+    scene_->removeItem(mesg_item_);
+    delete mesg_item_;
+    mesg_item_ = nullptr;
+  }
+
+  objects_.clear();
+  agent_x_ = 0;
+  agent_y_ = kHeight - 1;
+  grid_.fill({false});
+  InitializeObjects();
+  RenderGrid();
+  game_paused_ = false;
+}
+
 void Grid::UpdateGrid() {
+  if (game_paused_) {
+    return;
+  }
+
   const auto kNow = std::chrono::steady_clock::now();
   const auto kDeltaTime = std::chrono::duration_cast<std::chrono::milliseconds>(
                               kNow - last_update_time_)
@@ -67,14 +103,16 @@ void Grid::UpdateGrid() {
     agent_y_ = best_move_node_->state_.loc_y;
   } else {
     std::cerr << "Collision!\n";
-    QApplication::quit();
+    ShowMessage("Collision! Press space to restart.", Qt::red);
+    game_paused_ = true;
     return;
   }
 
   if (best_move_node_->state_.loc_x == kWidth - 1 &&
       best_move_node_->state_.loc_y == 0) {
     std::cout << "Success!\n";
-    QApplication::quit();
+    ShowMessage("Success! Press space to restart.", Qt::green);
+    game_paused_ = true;
     return;
   }
 

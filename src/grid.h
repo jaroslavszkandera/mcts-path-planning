@@ -5,8 +5,25 @@
 
 #include <QApplication>
 #include <QGraphicsRectItem>
-#include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QKeyEvent>
+
+class CustomGraphicsView : public QGraphicsView {
+  Q_OBJECT
+
+public:
+  explicit CustomGraphicsView(QGraphicsScene *scene, QWidget *parent = nullptr)
+      : QGraphicsView(scene, parent) {}
+
+protected:
+  void keyPressEvent(QKeyEvent *event) override {
+    if (event->key() == Qt::Key_Space) {
+      emit ResetRequested();
+    }
+  }
+signals:
+  void ResetRequested();
+};
 
 constexpr int kCellSize = 7;
 
@@ -18,11 +35,13 @@ public:
 
 public slots:
   void UpdateGrid();
+  void ResetGrid();
 
 private:
   QGraphicsScene *scene_;
   int search_time_ms_;
   int agent_x_, agent_y_;
+  bool game_paused_ = false;
   std::array<std::array<bool, kWidth>, kHeight> grid_;
   MCTSNode *best_move_node_;
   QGraphicsRectItem *goal_item_ = nullptr;
@@ -39,6 +58,8 @@ private:
   std::vector<Object> objects_;
   std::vector<QGraphicsRectItem *> rect_items_;
 
+  QGraphicsTextItem *mesg_item_ = nullptr;
+  void ShowMessage(const QString &message, const QColor &color);
   void InitializeObjects();
   void GenerateRandomShape(int start_x, int start_y, int size,
                            std::vector<std::pair<int, int>> &cells);
