@@ -24,6 +24,8 @@ private:
   int agent_x_, agent_y_;
   std::array<std::array<bool, kWidth>, kHeight> grid_;
   MCTSNode *best_move_node_;
+  QGraphicsRectItem *goal_item_ = nullptr;
+  QGraphicsRectItem *agent_item_ = nullptr;
 
   std::chrono::steady_clock::time_point last_update_time_;
   int frame_count_ = 0;

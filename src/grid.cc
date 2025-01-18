@@ -7,9 +7,7 @@ Grid::Grid(QGraphicsScene *scene)
     : scene_(scene), agent_x_(0), agent_y_(kHeight - 1),
       last_update_time_(std::chrono::steady_clock::now()) {
   std::srand(static_cast<unsigned>(std::time(nullptr)));
-  for (auto &row : grid_) {
-    row.fill(false);
-  }
+  grid_.fill({false});
   InitializeObjects();
   RenderGrid();
 }
@@ -25,15 +23,14 @@ void Grid::UpdateGrid() {
   frame_count_++;
 
   if (elapsed_time_ >= 1000) {
-    double fps = frame_count_ * 1000.0 / static_cast<double>(elapsed_time_);
-    std::cout << "FPS: " << fps << std::endl;
+    std::cout << "FPS: "
+              << (frame_count_ * 1000.00 / static_cast<double>(elapsed_time_))
+              << std::endl;
     frame_count_ = 0;
     elapsed_time_ = 0.0;
   }
 
-  for (auto &row : grid_) {
-    row.fill(false);
-  }
+  grid_.fill({false});
 
   for (auto &object : objects_) {
     for (auto &cell : object.cells) {
@@ -68,7 +65,7 @@ void Grid::UpdateGrid() {
     agent_x_ = best_move_node_->state_.loc_x;
     agent_y_ = best_move_node_->state_.loc_y;
   } else {
-    std::cerr << "No valid moves found!\n";
+    std::cerr << "Collision!\n";
     QApplication::quit();
     return;
   }
@@ -140,31 +137,32 @@ void Grid::GenerateRandomShape(int start_x, int start_y, int size,
 }
 
 void Grid::RenderGrid() {
-  for (auto *item : rect_items_) {
-    scene_->removeItem(item);
-    delete item;
-  }
-  rect_items_.clear();
+  static QGraphicsPixmapItem *pixmap_item = nullptr;
+  QPixmap pixmap(kWidth * kCellSize, kHeight * kCellSize);
+  pixmap.fill(Qt::white);
+  QPainter painter(&pixmap);
 
   for (size_t y = 0; y < kHeight; ++y) {
     for (size_t x = 0; x < kWidth; ++x) {
-      QGraphicsRectItem *cell = scene_->addRect(
-          static_cast<double>(x) * kCellSize,
-          static_cast<double>(y) * kCellSize, kCellSize, kCellSize,
-          QPen(Qt::black), QBrush(grid_[y][x] ? Qt::black : Qt::white));
-      rect_items_.push_back(cell);
+      if (grid_[y][x]) {
+        painter.fillRect(static_cast<int>(x) * kCellSize,
+                         static_cast<int>(y) * kCellSize, kCellSize, kCellSize,
+                         Qt::black);
+      }
     }
   }
 
-  QGraphicsRectItem *goal_item =
-      scene_->addRect(static_cast<double>(kWidth - 1) * kCellSize,
-                      static_cast<double>(0) * kCellSize, kCellSize, kCellSize,
-                      QPen(Qt::green), QBrush(Qt::green));
-  rect_items_.push_back(goal_item);
+  // Goal
+  painter.fillRect((kWidth - 1) * kCellSize, 0, kCellSize, kCellSize,
+                   Qt::green);
+  // Agent
+  painter.fillRect(agent_x_ * kCellSize, agent_y_ * kCellSize, kCellSize,
+                   kCellSize, Qt::red);
+  painter.end();
 
-  QGraphicsRectItem *agent_item =
-      scene_->addRect(static_cast<double>(agent_x_) * kCellSize,
-                      static_cast<double>(agent_y_) * kCellSize, kCellSize,
-                      kCellSize, QPen(Qt::red), QBrush(Qt::red));
-  rect_items_.push_back(agent_item);
+  if (!pixmap_item) {
+    pixmap_item = scene_->addPixmap(pixmap);
+  } else {
+    pixmap_item->setPixmap(pixmap);
+  }
 }
