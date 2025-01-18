@@ -85,8 +85,8 @@ void Grid::UpdateGrid() {
 
 void Grid::InitializeObjects() {
   constexpr int kNumObjects = 200;
-  constexpr int kMinSize = 4;
-  constexpr int kMaxSize = 10;
+  constexpr int kMinSize = 2;
+  constexpr int kMaxSize = 20;
 
   for (int i = 0; i < kNumObjects; ++i) {
     Object object;

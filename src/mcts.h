@@ -25,6 +25,12 @@ struct State {
 };
 
 struct MCTSNode {
+  State state_;
+  MCTSNode *parent_;
+  std::vector<std::unique_ptr<MCTSNode>> children_;
+  int visits_;
+  double total_reward_;
+
   explicit MCTSNode(const State &state, MCTSNode *parent = nullptr)
       : state_(state), parent_(parent), visits_(0), total_reward_(0.0) {}
 
@@ -35,12 +41,6 @@ struct MCTSNode {
     return (total_reward_ / visits_) +
            exploration_const * std::sqrt(std::log(parent_->visits_) / visits_);
   }
-
-  State state_;
-  MCTSNode *parent_;
-  std::vector<std::unique_ptr<MCTSNode>> children_;
-  int visits_;
-  double total_reward_;
 };
 
 class MCTS {
@@ -60,11 +60,13 @@ private:
 
   MCTSNode *Select(MCTSNode *node);
   void Expand(MCTSNode *node);
-  std::pair<std::vector<State>, double> Simulate(State state);
+  double Simulate(State state);
   void Backpropagate(MCTSNode *node, double reward);
   std::vector<State> GetNextStates(const State &state);
   State RandomNextState(const State &state);
   void UpdateObjects(State &state);
+  void
+  MergeLocalTrees(const std::vector<std::unique_ptr<MCTSNode>> &local_roots);
 
   bool IsGoal(const State &state) const {
     return state.loc_x == kGoalX && state.loc_y == kGoalY;

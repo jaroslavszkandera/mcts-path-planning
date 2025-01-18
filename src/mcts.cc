@@ -6,8 +6,7 @@
 void MCTS::Search(int iters) {
   for (int i = 0; i < iters; ++i) {
     MCTSNode *selected = Select(root_.get());
-    // TODO(JS): Display path
-    auto [path, reward] = Simulate(selected->state_);
+    double reward = Simulate(selected->state_);
     Backpropagate(selected, reward);
   }
 }
@@ -49,26 +48,50 @@ void MCTS::Expand(MCTSNode *node) {
   }
 }
 
-std::pair<std::vector<State>, double> MCTS::Simulate(State state) {
-  std::vector<State> path;
-  path.push_back(state);
+double MCTS::Simulate(State state) {
   double progress_reward = -std::sqrt(std::pow(state.loc_x - kGoalX, 2) +
                                       std::pow(state.loc_y - kGoalY, 2));
 
-  for (int step = 0; step < 10; ++step) {
+  double reward = progress_reward;
+  double heavy_penalty = -100;
+  int num_steps = 20;
+  for (int step = 0; step < num_steps; ++step) {
     if (IsCollision(state)) {
-      return {path, -100.0};
+      return -1000.0;
     }
+
+    double avoidance_reward = 0.0;
+    for (uint16_t y = std::max(0, state.loc_y - num_steps);
+         y < std::min(static_cast<uint16_t>(state.loc_y + num_steps), kHeight);
+         ++y) {
+      for (uint16_t x = std::max(0, state.loc_x - num_steps);
+           x < std::min(static_cast<uint16_t>(state.loc_x + num_steps), kWidth);
+           ++x) {
+        if (state.grid->at(y).at(x)) {
+          double dist_to_obstacle = std::sqrt(std::pow(state.loc_x - x, 2) +
+                                              std::pow(state.loc_y - y, 2));
+          if (dist_to_obstacle <= 0.7) {
+            avoidance_reward += heavy_penalty;
+          }
+          // Penalty for object proximity
+          if (dist_to_obstacle < 10.0) {
+            avoidance_reward -= 1.0 / dist_to_obstacle;
+          }
+        }
+      }
+    }
+
+    reward += progress_reward + avoidance_reward;
     if (IsGoal(state)) {
-      return {path, 100.0};
+      return 1000.0;
     }
 
     state = RandomNextState(state);
-    path.push_back(state);
     progress_reward = -std::sqrt(std::pow(state.loc_x - kGoalX, 2) +
                                  std::pow(state.loc_y - kGoalY, 2));
   }
-  return {path, progress_reward};
+  // std::cout << "reward " << reward << "\n";
+  return reward;
 }
 
 void MCTS::Backpropagate(MCTSNode *node, double reward) {
