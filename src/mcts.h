@@ -49,7 +49,7 @@ public:
       : root_(std::make_unique<MCTSNode>(init_state)),
         rng_(std::random_device{}()) {}
 
-  void Search(int iters);
+  void Search(int time_limit_ms);
   MCTSNode *BestChild() const;
 
 private:

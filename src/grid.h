@@ -8,19 +8,20 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 
-constexpr int kCellSize = 5;
+constexpr int kCellSize = 7;
 
 class Grid : public QObject {
   Q_OBJECT
 
 public:
-  explicit Grid(QGraphicsScene *scene);
+  explicit Grid(QGraphicsScene *scene, int search_time_ms);
 
 public slots:
   void UpdateGrid();
 
 private:
   QGraphicsScene *scene_;
+  int search_time_ms_;
   int agent_x_, agent_y_;
   std::array<std::array<bool, kWidth>, kHeight> grid_;
   MCTSNode *best_move_node_;

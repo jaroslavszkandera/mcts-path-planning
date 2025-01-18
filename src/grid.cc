@@ -3,8 +3,9 @@
 #include <iostream>
 #include <queue>
 
-Grid::Grid(QGraphicsScene *scene)
-    : scene_(scene), agent_x_(0), agent_y_(kHeight - 1),
+Grid::Grid(QGraphicsScene *scene, int search_time_ms)
+    : scene_(scene), search_time_ms_(search_time_ms), agent_x_(0),
+      agent_y_(kHeight - 1),
       last_update_time_(std::chrono::steady_clock::now()) {
   std::srand(static_cast<unsigned>(std::time(nullptr)));
   grid_.fill({false});
@@ -58,7 +59,7 @@ void Grid::UpdateGrid() {
       agent_x_, agent_y_,
       std::make_shared<std::array<std::array<bool, kWidth>, kHeight>>(grid_));
   MCTS mcts(curr_state);
-  mcts.Search(500);
+  mcts.Search(search_time_ms_);
 
   best_move_node_ = mcts.BestChild();
   if (best_move_node_) {

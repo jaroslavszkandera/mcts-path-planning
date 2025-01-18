@@ -1,14 +1,30 @@
 #include "mcts.h"
 
 #include <algorithm>
+#include <chrono>
 #include <iostream>
 
-void MCTS::Search(int iters) {
-  for (int i = 0; i < iters; ++i) {
+void MCTS::Search(int time_limit_ms) {
+  auto start_time = std::chrono::steady_clock::now();
+
+  // int iterations = 0;
+  while (true) {
+    auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::steady_clock::now() - start_time)
+                            .count();
+    if (elapsed_time >= time_limit_ms) {
+      break;
+    }
+
     MCTSNode *selected = Select(root_.get());
     double reward = Simulate(selected->state_);
     Backpropagate(selected, reward);
+
+    // iterations++;
   }
+
+  // std::cout << "Search completed with " << iterations << " iterations in "
+  //           << time_limit_ms << " ms.\n";
 }
 
 MCTSNode *MCTS::BestChild() const {
